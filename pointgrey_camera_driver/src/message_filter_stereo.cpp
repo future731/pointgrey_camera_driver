@@ -5,7 +5,6 @@
 #include <boost/thread.hpp>
 #include <limits>
 #include <opencv2/calib3d/calib3d.hpp>
-// #include <opencv2/core/core.hpp>
 #include <cv_bridge/cv_bridge.h>
 
 #include <message_filters/subscriber.h>
@@ -15,8 +14,10 @@
 #include <image_transport/image_transport.h>
 #include <image_transport/subscriber_filter.h>
 
-#include <geometry_msgs/Point.h>
+#include <std_msgs/Time.h>
+#include <geometry_msgs/PointStamped.h>
 #include <opencv_apps/MomentArrayStamped.h>
+#include <opencv_apps/Point2DStamped.h>
 
 namespace pointgrey_camera_driver
 {
@@ -41,7 +42,8 @@ private:
   void connectCb()
   {
     boost::mutex::scoped_lock scoped_lock(connect_mutex_);
-    if (pub_.getNumSubscribers() == 0)
+    if (pub_point_.getNumSubscribers() == 0 and pub_pixel_.getNumSubscribers() == 0 and
+        rpub_pixel_.getNumSubscribers() == 0)
     {
       if (pub_thread_)
       {
@@ -62,47 +64,13 @@ private:
   {
     ros::NodeHandle& pnh = getMTPrivateNodeHandle();
     pnh.param("approximate_sync", approximate_sync_, true);
-    pnh.param("queue_size", queue_size_, 10);
+    pnh.param("queue_size", queue_size_, 100);
 
     boost::mutex::scoped_lock scoped_lock(connect_mutex_);
-
-    std::cerr << "drop" << std::endl;
-    float pd[12] = { 1, 2, 3, 4,
-		     5, 6, 7, 8,
-		     9, 10, 11, 12 };
-
-    cv::Mat p(cv::Size(4, 3), CV_32F, pd);
-    std::vector<cv::Point2f> xy;
-    xy.push_back(cv::Point2f(2, 3));
-
-    float rpd[12] = { 1, 2, 3, 4,
-		      5, 6, 7, 8,
-		      9, 10, 11, 12 };
-    cv::Mat rp(cv::Size(4, 3), CV_32F, rpd);
-    std::vector<cv::Point2f> rxy;
-    rxy.push_back(cv::Point2f(1, 2));
-    float resultd[4] = { 0.0, 0.0, 0.0, 0.0 };
-    cv::Mat result(cv::Size(1, 4), CV_32F, resultd);
-
-    std::cerr << "p: " << std::endl;
-    std::cerr << p << std::endl;
-    std::cerr << "rp: " << std::endl;
-    std::cerr << rp << std::endl;
-    std::cerr << "xy: " << std::endl;
-    std::cerr << xy << std::endl;
-    std::cerr << "rxy: " << std::endl;
-    std::cerr << rxy << std::endl;
-    std::cerr << "result: " << std::endl;
-    std::cerr << result << std::endl;
-    std::cerr << "version" << std::endl;
-    std::cerr << CV_MAJOR_VERSION << std::endl;
-    std::cerr << CV_MINOR_VERSION << std::endl;
-    std::cerr << CV_SUBMINOR_VERSION << std::endl;
-    cv::triangulatePoints(p, rp, xy, rxy, result);
-    std::cerr << result << std::endl;
-    
     ros::SubscriberStatusCallback cb = boost::bind(&PointGreySyncStereoImagesNodelet::connectCb, this);
-    pub_ = getMTNodeHandle().advertise<geometry_msgs::Point>("/pointgrey/ball_point", 1, cb, cb);
+    pub_point_ = getMTNodeHandle().advertise<geometry_msgs::PointStamped>("/pointgrey/ball_point", 1, cb, cb);
+    pub_pixel_ = getMTNodeHandle().advertise<opencv_apps::Point2DStamped>("/pointgrey/left/ball_pixel", 1, cb, cb);
+    rpub_pixel_ = getMTNodeHandle().advertise<opencv_apps::Point2DStamped>("/pointgrey/right/ball_pixel", 1, cb, cb);
   }
 
   void imageCallback(const sensor_msgs::ImageConstPtr&)
@@ -136,7 +104,7 @@ private:
     }
     if (moments->moments.empty() or rmoments->moments.empty())
     {
-      std::cerr << "moments are empty" << std::endl;
+      // std::cerr << "moments are empty" << std::endl;
       return;
     }
     // getting each ball position in rectified camera pixel
@@ -145,91 +113,68 @@ private:
         [](const opencv_apps::Moment& m1, const opencv_apps::Moment& m2) { return m1.area < m2.area; });
     double center_x = center_it->center.x;
     double center_y = center_it->center.y;
+    std_msgs::Time stamp;
+    stamp.data = moments->header.stamp;
     auto rcenter_it = std::max_element(
         rmoments->moments.begin(), rmoments->moments.end(),
         [](const opencv_apps::Moment& m1, const opencv_apps::Moment& m2) { return m1.area < m2.area; });
     double rcenter_x = rcenter_it->center.x;
     double rcenter_y = rcenter_it->center.y;
+    std_msgs::Time rstamp;
+    rstamp.data = rmoments->header.stamp;
     // std::cerr << "(" << center_x << ", " << center_y << ") "
     //           << "(" << rcenter_x << ", " << rcenter_y << ") " << std::endl;
-    /*
     float pd[12] = { static_cast<float>(ci_->P[0]), static_cast<float>(ci_->P[1]),  static_cast<float>(ci_->P[2]),
                      static_cast<float>(ci_->P[3]), static_cast<float>(ci_->P[4]),  static_cast<float>(ci_->P[5]),
                      static_cast<float>(ci_->P[6]), static_cast<float>(ci_->P[7]),  static_cast<float>(ci_->P[8]),
                      static_cast<float>(ci_->P[9]), static_cast<float>(ci_->P[10]), static_cast<float>(ci_->P[11]) };
+
     cv::Mat p(cv::Size(4, 3), CV_32F, pd);
     std::vector<cv::Point2f> xy;
+    // xy.push_back(cv::Point2f(2, 3));
     xy.push_back(cv::Point2f(center_x, center_y));
 
-    float rpd[12] = {
-      static_cast<float>(rci_->P[0]), static_cast<float>(rci_->P[1]),  static_cast<float>(rci_->P[2]),
-      static_cast<float>(rci_->P[3]), static_cast<float>(rci_->P[4]),  static_cast<float>(rci_->P[5]),
-      static_cast<float>(rci_->P[6]), static_cast<float>(rci_->P[7]),  static_cast<float>(rci_->P[8]),
-      static_cast<float>(rci_->P[9]), static_cast<float>(rci_->P[10]), static_cast<float>(rci_->P[11])
-    };
+    // float rpd[12] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+    // clang-format off
+    float rpd[12] = { static_cast<float>(rci_->P[0]), static_cast<float>(rci_->P[1]), static_cast<float>(rci_->P[2]),
+                      // static_cast<float>(rci_->P[3]) * 1000.0f / static_cast<float>(rci_->P[0]),
+                      static_cast<float>(rci_->P[3]), static_cast<float>(rci_->P[4]), static_cast<float>(rci_->P[5]),
+                      static_cast<float>(rci_->P[6]), static_cast<float>(rci_->P[7]), static_cast<float>(rci_->P[8]),
+                      static_cast<float>(rci_->P[9]), static_cast<float>(rci_->P[10]), static_cast<float>(rci_->P[11]) };
+    // clang-format on
     cv::Mat rp(cv::Size(4, 3), CV_32F, rpd);
     std::vector<cv::Point2f> rxy;
+    // rxy.push_back(cv::Point2f(1, 2));
     rxy.push_back(cv::Point2f(rcenter_x, rcenter_y));
-
-    float resultd[4] = { 0.0, 0.0, 0.0, 0.0 };
-
-    cv::Mat result(cv::Size(1, 4), CV_32F, resultd);
-
-    cv::triangulatePoints(p, rp, xy, rxy, result);
-    */
-    std::cerr << "drop" << std::endl;
-    float pd[12] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
-
-    cv::Mat p(cv::Size(4, 3), CV_32F, pd);
-    std::vector<cv::Point2f> xy;
-    xy.push_back(cv::Point2f(2, 3));
-
-    float rpd[12] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
-    cv::Mat rp(cv::Size(4, 3), CV_32F, rpd);
-    std::vector<cv::Point2f> rxy;
-    rxy.push_back(cv::Point2f(1, 2));
     float resultd[4] = { 0.0, 0.0, 0.0, 0.0 };
     cv::Mat result(cv::Size(1, 4), CV_32F, resultd);
-
-    std::cerr << "p: " << std::endl;
-    std::cerr << p << std::endl;
-    std::cerr << "rp: " << std::endl;
-    std::cerr << rp << std::endl;
-    std::cerr << "xy: " << std::endl;
-    std::cerr << xy << std::endl;
-    std::cerr << "rxy: " << std::endl;
-    std::cerr << rxy << std::endl;
-    std::cerr << "result: " << std::endl;
-    std::cerr << result << std::endl;
-    std::cerr << "version" << std::endl;
-    std::cerr << CV_MAJOR_VERSION << std::endl;
-    std::cerr << CV_MINOR_VERSION << std::endl;
-    std::cerr << CV_SUBMINOR_VERSION << std::endl;
     cv::triangulatePoints(p, rp, xy, rxy, result);
-    std::cerr << result << std::endl;
-    /*
-      std::cerr << "drop" << std::endl;
-
-      cv::Mat p(cv::Size(4, 3), CV_32F);
-      std::vector<cv::Point2f> xy;
-      xy.push_back(cv::Point2f(1, 2));
-
-      cv::Mat rp(cv::Size(4, 3), CV_32F);
-      std::vector<cv::Point2f> rxy;
-      rxy.push_back(cv::Point2f(3, 4));
-      cv::Mat result(cv::Size(1, 4), CV_32F);
-
-      cv::triangulatePoints(p, rp, xy, rxy, result);
-
-      std::cerr << result << std::endl;
-    */
-    double x = 0.0;
-    double y = 0.0;
-    double z = 0.0;
-    p_msg_.x = x;
-    p_msg_.y = y;
-    p_msg_.z = z;
-    pub_.publish(p_msg_);
+    std_msgs::Header header;
+    header.seq = seq_;
+    header.frame_id = "ball_point";
+    seq_++;
+    p_msg_.header = header;
+    geometry_msgs::Point point;
+#warning points are in mm
+    point.x = result.at<float>(0, 0) / result.at<float>(0, 3) * 1000.0f;
+    point.y = result.at<float>(1, 0) / result.at<float>(0, 3) * 1000.0f;
+    point.z = result.at<float>(2, 0) / result.at<float>(0, 3) * 1000.0f;
+    p_msg_.point = point;
+    pub_point_.publish(p_msg_);
+    opencv_apps::Point2DStamped pixel;
+    opencv_apps::Point2D pixel_left;
+    pixel_left.x = center_x;
+    pixel_left.y = center_y;
+    pixel.header = header;
+    pixel.point = pixel_left;
+    opencv_apps::Point2DStamped rpixel;
+    opencv_apps::Point2D pixel_right;
+    pixel_right.x = rcenter_x;
+    pixel_right.y = rcenter_y;
+    rpixel.header = header;
+    rpixel.point = pixel_right;
+    pub_pixel_.publish(pixel);
+    rpub_pixel_.publish(rpixel);
   }
 
   void loop()
@@ -265,12 +210,15 @@ private:
     std::unique_ptr<message_filters::Subscriber<opencv_apps::MomentArrayStamped>> rsub;
     rsub.reset(new message_filters::Subscriber<opencv_apps::MomentArrayStamped>(
         getMTNodeHandle(), "/pointgrey/right/centroid/moments", 1));
-    typedef message_filters::sync_policies::ApproximateTime<opencv_apps::MomentArrayStamped,
-                                                            opencv_apps::MomentArrayStamped>
-        MyApproxSyncPolicy;
+    using MyApproxSyncPolicy = message_filters::sync_policies::ApproximateTime<opencv_apps::MomentArrayStamped,
+                                                                               opencv_apps::MomentArrayStamped>;
     std::unique_ptr<message_filters::Synchronizer<MyApproxSyncPolicy>> approximate_synchronizer;
+    using MyExactSyncPolicy =
+        message_filters::sync_policies::ExactTime<opencv_apps::MomentArrayStamped, opencv_apps::MomentArrayStamped>;
+    std::unique_ptr<message_filters::Synchronizer<MyExactSyncPolicy>> exact_synchronizer;
     if (approximate_sync_)
     {
+      std::cerr << "Approximate Synchronizer policy is selected" << std::endl;
       approximate_synchronizer.reset(
           new message_filters::Synchronizer<MyApproxSyncPolicy>(MyApproxSyncPolicy(queue_size_), *sub, *rsub));
       approximate_synchronizer->registerCallback(
@@ -278,20 +226,31 @@ private:
     }
     else
     {
-      exact_synchronizer_.reset(
+      std::cerr << "Exact Synchronizer policy is selected" << std::endl;
+      exact_synchronizer.reset(
           new message_filters::Synchronizer<MyExactSyncPolicy>(MyExactSyncPolicy(queue_size_), *sub, *rsub));
-      exact_synchronizer_->registerCallback(
+      exact_synchronizer->registerCallback(
           boost::bind(&PointGreySyncStereoImagesNodelet::momentsCallback, this, _1, _2));
     }
     pub_thread_->yield();
     boost::this_thread::disable_interruption no_interruption{};
+    ros::Rate loop2(1);
     while (not boost::this_thread::interruption_requested())
     {
+      if (pub_point_.getNumSubscribers() == 0 and pub_pixel_.getNumSubscribers() == 0 and
+          rpub_pixel_.getNumSubscribers() == 0)
+      {
+        break;
+      }
+      loop2.sleep();
     }
   }
 
-  geometry_msgs::Point p_msg_;
-  ros::Publisher pub_;
+  int seq_ = 0;
+  geometry_msgs::PointStamped p_msg_;
+  ros::Publisher pub_point_;
+  ros::Publisher pub_pixel_;
+  ros::Publisher rpub_pixel_;
   std::unique_ptr<sensor_msgs::CameraInfo> ci_ = nullptr;
   std::unique_ptr<sensor_msgs::CameraInfo> rci_ = nullptr;
 
@@ -299,13 +258,9 @@ private:
   boost::mutex connect_mutex_;
 
   bool approximate_sync_ = true;
-  int queue_size_ = 5;
+  int queue_size_ = 10;
 
   ros::NodeHandle pnh_;
-
-  typedef message_filters::sync_policies::ExactTime<opencv_apps::MomentArrayStamped, opencv_apps::MomentArrayStamped>
-      MyExactSyncPolicy;
-  std::unique_ptr<message_filters::Synchronizer<MyExactSyncPolicy>> exact_synchronizer_;
 };
 
 PLUGINLIB_DECLARE_CLASS(pointgrey_camera_driver, PointGreySyncStereoImagesNodelet,

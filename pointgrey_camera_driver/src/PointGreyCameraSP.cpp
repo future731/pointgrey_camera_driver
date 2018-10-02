@@ -246,6 +246,44 @@ void PointGreyCameraSP::setExposure(bool& autoset, double& value)
 }
 // }}}
 
+// {{{ setGamma
+void PointGreyCameraSP::setGamma(double& value)
+{
+  INodeMap& nodeMap = cam_ptr_->GetNodeMap();
+
+  // TODO gamma is always enabled; implementation is not enough
+  try
+  {
+    CBooleanPtr ptrGammaEnable = nodeMap.GetNode("GammaEnable");
+    if (!IsAvailable(ptrGammaEnable) || !IsWritable(ptrGammaEnable))
+    {
+      std::cerr << "Unable to disable gamma (node retrieval). Aborting..." << std::endl;
+      return;
+    }
+    ptrGammaEnable->SetValue(true);
+
+    CFloatPtr ptrGammaValue = nodeMap.GetNode("Gamma");
+    if (!IsAvailable(ptrGammaValue) || !IsWritable(ptrGammaValue))
+    {
+      std::cerr << "Unable to set gamma time. Aborting..." << std::endl;
+      return;
+    }
+    const double maxgamma = ptrGammaValue->GetMax();
+    double setgamma = value;
+    if (setgamma > maxgamma)
+    {
+      setgamma = maxgamma;
+    }
+    ptrGammaValue->SetValue(setgamma);
+    value = setgamma;
+  }
+  catch (Spinnaker::Exception& e)
+  {
+    std::cerr << "Error(Gamma): " << e.what() << std::endl;
+  }
+}
+// }}}
+
 // {{{ setGain
 void PointGreyCameraSP::setGain(bool& autoset, double& value)
 {
@@ -510,6 +548,7 @@ bool PointGreyCameraSP::setNewConfiguration(const int& camera_id, pointgrey_came
   // Set gain
   // retVal &= PointGreyCameraSP::setProperty(GAIN, config.auto_gain, config.gain);
   setGain(config.auto_gain, config.gain);
+  setGamma(config.gamma);
   setExternalTrigger(config.enable_trigger, config.trigger_source, config.trigger_polarity);
 
   return retVal;
@@ -771,17 +810,17 @@ void PointGreyCameraSP::grabImage(sensor_msgs::Image& image, const std::string& 
 
     last_ = now_;
     now_ = std::chrono::system_clock::now();
-    std::chrono::duration<double> diff = now_ - last_;
+    double diff = std::chrono::duration_cast<std::chrono::microseconds>(now_ - last_).count() / 1000000.0;
     if (count_test_ == 100)
     {
       count_test_ = 0;
       sum_test_ = 0;
     }
     count_test_++;
-    sum_test_ += diff.count();
+    sum_test_ += diff;
     if (count_test_ % 100 == 0)
     {
-      if (diff.count() > 10e-5)
+      if (diff > 10e-5)
       {
         std::cerr << std::fixed << std::setw(10) << std::right << 1.0 / (sum_test_ / 100.0) << " " << frame_id
                   << std::endl;

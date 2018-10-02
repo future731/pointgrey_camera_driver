@@ -6,10 +6,6 @@ find_package(catkin REQUIRED COMPONENTS camera_info_manager diagnostic_updater d
   wfov_camera_msgs cv_bridge
   )
 
-find_package(OpenCV REQUIRED)
-message("OpenCV VERSION: ${OpenCV_VERSION}")
-message("OpenCV Components: ${OpenCV_LIB_COMPONENTS}")
-
 generate_dynamic_reconfigure_options(
   cfg/PointGrey.cfg
 )
@@ -93,6 +89,10 @@ catkin_package(CATKIN_DEPENDS
 # find_package(OpenCV REQUIRED)
 # message("${OpenCV_INCLUDE_DIRS}")
 # message("${OpenCV_LIBRARIES}")
+
+find_package(OpenCV REQUIRED)
+message("OpenCV VERSION: ${OpenCV_VERSION}")
+message("OpenCV Components: ${OpenCV_LIB_COMPONENTS}")
 
 message("opencv_dir: ${OpenCV_DIRS}")
 # find_package(PkgConfig REQUIRED)

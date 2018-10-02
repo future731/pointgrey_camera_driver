@@ -630,7 +630,9 @@ private:
             wfov_image->temperature = pg_.getCameraTemperature();
             rwfov_image->temperature = rpg_.getCameraTemperature();
 
-            // ros::Time time = ros::Time::now();
+// ros::Time time = ros::Time::now();
+#warning synchronizing left and right stamp type
+            rwfov_image->image.header.stamp = wfov_image->image.header.stamp;
             wfov_image->header.stamp = wfov_image->image.header.stamp;
             rwfov_image->header.stamp = rwfov_image->image.header.stamp;
 
@@ -638,9 +640,11 @@ private:
             ci_.reset(new sensor_msgs::CameraInfo(cinfo_->getCameraInfo()));
             ci_->header.stamp = wfov_image->image.header.stamp;
             ci_->header.frame_id = wfov_image->header.frame_id;
+
             rci_.reset(new sensor_msgs::CameraInfo(rcinfo_->getCameraInfo()));
             rci_->header.stamp = rwfov_image->image.header.stamp;
-            rci_->header.frame_id = rwfov_image->header.frame_id;
+            rci_->header.frame_id = rwfov_image->image.header.frame_id;
+
             // The height, width, distortion model, and parameters are all filled in by camera info manager.
             ci_->binning_x = binning_x_;
             ci_->binning_y = binning_y_;
