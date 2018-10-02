@@ -151,14 +151,14 @@ private:
     cv::triangulatePoints(p, rp, xy, rxy, result);
     std_msgs::Header header;
     header.seq = seq_;
-    header.frame_id = "ball_point";
+    header.stamp = stamp.data;
+    header.frame_id = "/pointgrey_tf_opt";
     seq_++;
     p_msg_.header = header;
     geometry_msgs::Point point;
-#warning points are in mm
-    point.x = result.at<float>(0, 0) / result.at<float>(0, 3) * 1000.0f;
-    point.y = result.at<float>(1, 0) / result.at<float>(0, 3) * 1000.0f;
-    point.z = result.at<float>(2, 0) / result.at<float>(0, 3) * 1000.0f;
+    point.x = result.at<float>(0, 0) / result.at<float>(0, 3);
+    point.y = result.at<float>(1, 0) / result.at<float>(0, 3);
+    point.z = result.at<float>(2, 0) / result.at<float>(0, 3);
     p_msg_.point = point;
     pub_point_.publish(p_msg_);
     opencv_apps::Point2DStamped pixel;

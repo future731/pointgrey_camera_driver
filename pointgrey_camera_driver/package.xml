@@ -28,9 +28,15 @@
   <depend>opencv_apps</depend>
   <depend>cv_bridge</depend>
 
-  <!-- Dependencies of libflycapture -->
+  <!-- Dependencies of libflycapture and spinnaker-->
   <depend>libusb-1.0-dev</depend>
   <depend>libraw1394-dev</depend>
+
+  <!-- Dependencies of pointgrey arduino writer-->
+  <depend>gcc-avr</depend>
+  <depend>avr-libc</depend>
+  <depend>avrdude</depend>
+  <depend>binutils-avr</depend>
 
   <exec_depend>image_proc</exec_depend>
   <exec_depend>stereo_image_proc</exec_depend>
