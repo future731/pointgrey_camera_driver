@@ -94,18 +94,7 @@ find_package(OpenCV REQUIRED)
 message("OpenCV VERSION: ${OpenCV_VERSION}")
 message("OpenCV Components: ${OpenCV_LIB_COMPONENTS}")
 
-message("opencv_dir: ${OpenCV_DIRS}")
-# find_package(PkgConfig REQUIRED)
-# pkg_check_modules(OpenCV opencv-3.3.1-dev REQUIRED)
-message("dir ${OpenCV_LIB_DIR}")
-message("dirs ${OpenCV_LIB_DIRS}")
-message("library dir ${OpenCV_LIBRARY_DIR}")
-message("library dirs ${OpenCV_LIBRARY_DIRS}")
-
 include_directories(include /usr/include/spinnaker ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
-# include_directories(include /usr/include/spinnaker ${catkin_INCLUDE_DIRS})
-# link_directories(/usr/lib/)
-# link_directories(${OpenCV_LIBRARY_DIRS})
 add_library(PointGreyCameraSP src/PointGreyCameraSP.cpp)
 target_link_libraries(PointGreyCameraSP Spinnaker ${catkin_LIBRARIES})
 add_dependencies(PointGreyCameraSP ${PROJECT_NAME}_gencfg)
@@ -113,17 +102,8 @@ add_library(PointGreyCameraSPNodelet src/nodelet_sp.cpp)
 target_link_libraries(PointGreyCameraSPNodelet PointGreyCameraSP ${catkin_LIBRARIES})
 add_library(PointGreyStereoCameraSPNodelet src/stereo_nodelet_sp.cpp)
 target_link_libraries(PointGreyStereoCameraSPNodelet PointGreyCameraSP ${catkin_LIBRARIES})
-
-add_executable(main src/test.cpp)
-target_link_libraries(main PointGreyCameraSP ${OpenCV_LIBRARIES} ${catkin_LIBRARIES})
-# target_link_libraries(main PointGreyCameraSP ${catkin_LIBRARIES})
-
-message("pointgrey_camera_driver catkin_LIBRARIES: ${catkin_LIBRARIES}")
-
 add_library(PointGreySyncStereoImagesNodelet src/message_filter_stereo.cpp)
-# target_link_libraries(PointGreySyncStereoImagesNodelet ${OpenCV_LIBRARIES} ${catkin_LIBRARIES})
 target_link_libraries(PointGreySyncStereoImagesNodelet ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
-# target_link_libraries(PointGreySyncStereoImagesNodelet ${catkin_LIBRARIES})
 
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
@@ -134,7 +114,6 @@ install(TARGETS
   # pointgrey_camera_node
   # pointgrey_stereo_node
   # pointgrey_list_cameras
-  main
   PointGreyCameraSP
   PointGreyCameraSPNodelet
   PointGreyStereoCameraSPNodelet
