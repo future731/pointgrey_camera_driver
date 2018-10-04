@@ -199,6 +199,9 @@
       <param name="approximate_sync" value="false" />
       <param name="queue_size" value="5" />
     </node>
+    <node name="orbit_estimation" pkg="nodelet" type="nodelet"
+        args="load pointgrey_camera_driver/PointGreyBallOrbitEstimationNodelet $(arg nodelet_manager_name)">
+    </node>
     <!-- <node name="disparity" pkg="nodelet" type="nodelet" -->
     <!--     args="load stereo_image_proc/disparity $(arg nodelet_manager_name_absolute)"> -->
     <!--     <remap from="left/image_rect" to="left/dilate/output" /> -->

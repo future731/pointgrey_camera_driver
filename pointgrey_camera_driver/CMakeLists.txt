@@ -104,6 +104,8 @@ add_library(PointGreyStereoCameraSPNodelet src/stereo_nodelet_sp.cpp)
 target_link_libraries(PointGreyStereoCameraSPNodelet PointGreyCameraSP ${catkin_LIBRARIES})
 add_library(PointGreySyncStereoImagesNodelet src/message_filter_stereo.cpp)
 target_link_libraries(PointGreySyncStereoImagesNodelet ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+add_library(PointGreyBallOrbitEstimationNodelet src/ekf_orbit_estimation.cpp)
+target_link_libraries(PointGreyBallOrbitEstimationNodelet ${catkin_LIBRARIES})
 
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
@@ -118,6 +120,7 @@ install(TARGETS
   PointGreyCameraSPNodelet
   PointGreyStereoCameraSPNodelet
   PointGreySyncStereoImagesNodelet
+  PointGreyBallOrbitEstimationNodelet
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
