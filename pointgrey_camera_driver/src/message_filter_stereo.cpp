@@ -18,6 +18,7 @@
 #include <geometry_msgs/PointStamped.h>
 #include <opencv_apps/MomentArrayStamped.h>
 #include <opencv_apps/Point2DStamped.h>
+#include <opencv_apps/Point2DArrayStamped.h>
 
 namespace pointgrey_camera_driver
 {
@@ -43,7 +44,7 @@ private:
   {
     boost::mutex::scoped_lock scoped_lock(connect_mutex_);
     if (pub_point_.getNumSubscribers() == 0 and pub_pixel_.getNumSubscribers() == 0 and
-        rpub_pixel_.getNumSubscribers() == 0)
+        rpub_pixel_.getNumSubscribers() == 0 and pub_pixels_.getNumSubscribers() == 0)
     {
       if (pub_thread_)
       {
@@ -69,6 +70,7 @@ private:
     boost::mutex::scoped_lock scoped_lock(connect_mutex_);
     ros::SubscriberStatusCallback cb = boost::bind(&PointGreySyncStereoImagesNodelet::connectCb, this);
     pub_point_ = getMTNodeHandle().advertise<geometry_msgs::PointStamped>("/pointgrey/ball_point", 1, cb, cb);
+    pub_pixels_ = getMTNodeHandle().advertise<opencv_apps::Point2DArrayStamped>("/pointgrey/ball_pixels", 1, cb, cb);
     pub_pixel_ = getMTNodeHandle().advertise<opencv_apps::Point2DStamped>("/pointgrey/left/ball_pixel", 1, cb, cb);
     rpub_pixel_ = getMTNodeHandle().advertise<opencv_apps::Point2DStamped>("/pointgrey/right/ball_pixel", 1, cb, cb);
   }
@@ -180,6 +182,11 @@ private:
     rpixel.point = pixel_right;
     pub_pixel_.publish(pixel);
     rpub_pixel_.publish(rpixel);
+    std::vector<opencv_apps::Point2D> pixels({ pixel_left, pixel_right });
+    opencv_apps::Point2DArrayStamped pixels_msg;
+    pixels_msg.header = header;
+    pixels_msg.points = pixels;
+    pub_pixels_.publish(pixels_msg);
   }
 
   void loop()
@@ -243,7 +250,7 @@ private:
     while (not boost::this_thread::interruption_requested())
     {
       if (pub_point_.getNumSubscribers() == 0 and pub_pixel_.getNumSubscribers() == 0 and
-          rpub_pixel_.getNumSubscribers() == 0)
+          rpub_pixel_.getNumSubscribers() == 0 and pub_pixels_.getNumSubscribers() == 0)
       {
         break;
       }
@@ -254,6 +261,7 @@ private:
   int seq_ = 0;
   geometry_msgs::PointStamped p_msg_;
   ros::Publisher pub_point_;
+  ros::Publisher pub_pixels_;
   ros::Publisher pub_pixel_;
   ros::Publisher rpub_pixel_;
   std::unique_ptr<sensor_msgs::CameraInfo> ci_ = nullptr;

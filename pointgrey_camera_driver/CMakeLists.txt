@@ -94,7 +94,9 @@ find_package(OpenCV REQUIRED)
 message("OpenCV VERSION: ${OpenCV_VERSION}")
 message("OpenCV Components: ${OpenCV_LIB_COMPONENTS}")
 
-include_directories(include /usr/include/spinnaker ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
+find_package(Eigen3 REQUIRED)
+
+include_directories(include /usr/include/spinnaker ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS})
 add_library(PointGreyCameraSP src/PointGreyCameraSP.cpp)
 target_link_libraries(PointGreyCameraSP Spinnaker ${catkin_LIBRARIES})
 add_dependencies(PointGreyCameraSP ${PROJECT_NAME}_gencfg)
