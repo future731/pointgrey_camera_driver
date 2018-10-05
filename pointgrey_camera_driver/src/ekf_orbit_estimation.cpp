@@ -66,16 +66,16 @@ private:
 
     Eigen::VectorXd x_init(6);
     // 雑な値を入れておく
-    x_init << 4.0, 0.0, 0.0, -1.0, -1.0, 2.0;
+    x_init << 4.0, 0.0, 0.0, -1.0, -1.0, 3.0;
     // 雑な値を入れておいたので増やしておく
     Eigen::MatrixXd P_init(6, 6);
     // clang-format off
-    P_init << 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-              0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
-              0.0, 0.0, 0.1, 0.0, 0.0, 0.0,
-              0.0, 0.0, 0.0, 2.0, 0.0, 0.0,
+    P_init << 3.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+              0.0, 0.5, 0.0, 0.0, 0.0, 0.0,
+              0.0, 0.0, 2.0, 0.0, 0.0, 0.0,
+              0.0, 0.0, 0.0, 3.0, 0.0, 0.0,
               0.0, 0.0, 0.0, 0.0, 1.0, 0.0,
-              0.0, 0.0, 0.0, 0.0, 0.0, 2.0;
+              0.0, 0.0, 0.0, 0.0, 0.0, 3.0;
     // clang-format on
     ekf.reset(new Filter::EKF(x_init, P_init));
   }
@@ -96,12 +96,12 @@ private:
     Eigen::MatrixXd PL(3, 4);
     Eigen::MatrixXd PR(3, 4);
     // clang-format off
-    PL << 1710.009813,    0.000000, 717.047562,    0.000000,
-             0.000000, 1710.009813, 435.945057,    0.000000,
-             0.000000,    0.000000,   1.000000,    0.000000;
-    PR << 1710.009813,    0.000000, 717.047562, -157.965126,
-             0.000000, 1710.009813, 435.945057,    0.000000,
-             0.000000,    0.000000,   1.000000,    0.000000;
+    PL <<  ci_->P[0], ci_->P[1], ci_->P[2], ci_->P[3],
+           ci_->P[4], ci_->P[5], ci_->P[6], ci_->P[7],
+           ci_->P[8], ci_->P[9], ci_->P[10], ci_->P[11];
+    PR <<  rci_->P[0], rci_->P[1], rci_->P[2], rci_->P[3],
+           rci_->P[4], rci_->P[5], rci_->P[6], rci_->P[7],
+           rci_->P[8], rci_->P[9], rci_->P[10], rci_->P[11];
     // clang-format on
     float pd[12] = {
       static_cast<float>(PL(0, 0)), static_cast<float>(PL(0, 1)), static_cast<float>(PL(0, 2)),
@@ -128,7 +128,7 @@ private:
     point << result.at<float>(0, 0) / result.at<float>(3, 0), result.at<float>(1, 0) / result.at<float>(3, 0),
         result.at<float>(2, 0) / result.at<float>(3, 0);
 
-    std::cout << "measured: " << point[2] << " " << -point[0] << " " << -point[1] << std::endl;
+    std::cerr << "measured: " << point[2] << " " << -point[0] << " " << -point[1] << std::endl;
     std_msgs::Header header = pixels->header;
     if (not is_time_initialized_)
     {
@@ -186,7 +186,7 @@ private:
 
     std::pair<Eigen::VectorXd, Eigen::MatrixXd> value = ekf->update(f, F, G, Q, u, z, h, dh, R);
 
-    std::cout << "estimated: " << (value.first)[0] << " " << (value.first)[1] << " " << (value.first)[2] << " "
+    std::cerr << "estimated: " << (value.first)[0] << " " << (value.first)[1] << " " << (value.first)[2] << " "
               << (value.first)[3] << " " << (value.first)[4] << " " << (value.first)[5] << std::endl;
   }
 
@@ -212,7 +212,6 @@ private:
 
   void loop()
   {
-    /*
     // {{{ getting camera info
     // Image subscriber is dummy
     ros::Subscriber sub_cam_img = getMTNodeHandle().subscribe<sensor_msgs::Image>(
@@ -239,7 +238,6 @@ private:
       loop.sleep();
     }
     // }}}
-    */
 
     sub_pixels_ = getMTNodeHandle().subscribe<opencv_apps::Point2DArrayStamped>(
         "/pointgrey/ball_pixels", 1, boost::bind(&PointGreyBallOrbitEstimationNodelet::callback, this, _1));

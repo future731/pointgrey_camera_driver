@@ -760,6 +760,8 @@ void PointGreyCameraSP::grabImage(sensor_msgs::Image& image, const std::string& 
     }
     if (not is_est_tm_initialized_)
     {
+      std::cerr << frame_id << " init timestamp is " << sys_tm_.sec << "." << std::setw(9) << std::setfill('0')
+                << sys_tm_.nsec << std::endl;
       est_tm_ = sys_tm_;
       is_est_tm_initialized_ = true;
     }
