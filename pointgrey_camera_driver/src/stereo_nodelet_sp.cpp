@@ -630,9 +630,6 @@ private:
             wfov_image->temperature = pg_.getCameraTemperature();
             rwfov_image->temperature = rpg_.getCameraTemperature();
 
-// ros::Time time = ros::Time::now();
-#warning synchronizing left and right stamp type
-            rwfov_image->image.header.stamp = wfov_image->image.header.stamp;
             wfov_image->header.stamp = wfov_image->image.header.stamp;
             rwfov_image->header.stamp = rwfov_image->image.header.stamp;
 

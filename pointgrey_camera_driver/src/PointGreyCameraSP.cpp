@@ -486,7 +486,7 @@ void PointGreyCameraSP::setExternalTrigger(bool& enable, std::string& source, in
     CEnumEntryPtr ptrTriggerModeOn = ptrTriggerMode->GetEntryByName("On");
     if (!IsAvailable(ptrTriggerModeOn) || !IsReadable(ptrTriggerModeOn))
     {
-      std::cout << "Unable to enable trigger mode (enum entry retrieval). Aborting..." << std::endl;
+      std::cerr << "Unable to enable trigger mode (enum entry retrieval). Aborting..." << std::endl;
       return;
     }
     ptrTriggerMode->SetIntValue(ptrTriggerModeOn->GetValue());
@@ -760,28 +760,28 @@ void PointGreyCameraSP::grabImage(sensor_msgs::Image& image, const std::string& 
     }
     if (not is_est_tm_initialized_)
     {
-      std::cerr << frame_id << " init timestamp is " << sys_tm_.sec << "." << std::setw(9) << std::setfill('0')
-                << sys_tm_.nsec << std::endl;
-      est_tm_ = sys_tm_;
+      std::cerr << frame_id << " init timestamp is " << cam_tm.sec << "." << std::setw(9) << std::setfill('0')
+                << cam_tm.nsec << std::setfill(' ') << std::endl;
+      est_tm_ = cam_tm;
       is_est_tm_initialized_ = true;
     }
     ros::Duration cam_diff = cam_tm - last_cam_tm_;
 
     // estimating image header timestamp by P control
     est_tm_ = est_tm_ + cam_diff;
-    est_tm_ = est_tm_ + static_cast<ros::Duration>((sys_tm_ - est_tm_) * 0.01);
+    est_tm_ = est_tm_ + static_cast<ros::Duration>((sys_tm_ - est_tm_) * 0.1);
 
     ros::Time tm_now;
     tm_now = est_tm_;
 
-    // std::cerr << "id: " << frame_id  //
-    // << ", cam_tm: " << cam_tm.sec << "." << std::setw(9) << std::setfill('0') << cam_tm.nsec  //
-    // << ", last_cam_tm_: " << last_cam_tm_.sec << "." << std::setw(9) << std::setfill('0')
-    // << last_cam_tm_.nsec                                                                            //
+    // std::cerr << frame_id.at(frame_id.size() - 1)                                                         //
+    // << ", cam: " << cam_tm.sec % 10 << "." << std::setw(9) << std::setfill('0') << cam_tm.nsec  //
+    // << ", last_cam_tm_: " << last_cam_tm_.sec << "." << std::setw(9) << std::setfill('0') <<
+    // last_cam_tm_.nsec  //
     // << ", cam_diff: " << cam_diff.sec << "." << std::setw(9) << std::setfill('0') << cam_diff.nsec  //
     // << ", cam_tm: " << cam_tm.sec << "." << std::setw(9) << std::setfill('0') << cam_tm.nsec     //
-    // << ", sys_tm: " << sys_tm_.sec << "." << std::setw(9) << std::setfill('0') << sys_tm_.nsec   //
-    // << ", est_tm_: " << est_tm_.sec << "." << std::setw(9) << std::setfill('0') << est_tm_.nsec  //
+    // << ", sys: " << sys_tm_.sec % 10 << "." << std::setw(9) << std::setfill('0') << sys_tm_.nsec  //
+    // << ", est: " << est_tm_.sec % 10 << "." << std::setw(9) << std::setfill('0') << est_tm_.nsec  //
     // << std::endl;
 
     last_cam_tm_ = cam_tm;
