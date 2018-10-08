@@ -769,7 +769,7 @@ void PointGreyCameraSP::grabImage(sensor_msgs::Image& image, const std::string& 
 
     // estimating image header timestamp by P control
     est_tm_ = est_tm_ + cam_diff;
-    est_tm_ = est_tm_ + static_cast<ros::Duration>((sys_tm_ - est_tm_) * 0.1);
+    est_tm_ = est_tm_ + static_cast<ros::Duration>((sys_tm_ - est_tm_) * 0.03);
 
     ros::Time tm_now;
     tm_now = est_tm_;
