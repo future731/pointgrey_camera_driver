@@ -164,7 +164,7 @@
     </group>
     <node name="sync_nodelet" pkg="nodelet" type="nodelet"
         args="load pointgrey_camera_driver/PointGreySyncStereoImagesNodelet $(arg nodelet_manager_name)">
-      <param name="approximate_sync" value="false" />
+      <param name="approximate_sync" value="true" />
       <param name="queue_size" value="5" />
     </node>
     <node name="orbit_estimation" pkg="nodelet" type="nodelet"
