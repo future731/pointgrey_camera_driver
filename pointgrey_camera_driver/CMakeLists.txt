@@ -3,7 +3,7 @@ project(pointgrey_camera_driver)
 
 find_package(catkin REQUIRED COMPONENTS camera_info_manager diagnostic_updater dynamic_reconfigure
   image_exposure_msgs image_transport nodelet roscpp sensor_msgs
-  wfov_camera_msgs cv_bridge
+  wfov_camera_msgs opencv_apps cv_bridge
   )
 
 generate_dynamic_reconfigure_options(
