@@ -32,7 +32,6 @@
 
   <exec_depend>image_proc</exec_depend>
   <exec_depend>stereo_image_proc</exec_depend>
-  <exec_depend>jsk_perception</exec_depend>
 
   <test_depend>roslaunch</test_depend>
   <test_depend>roslint</test_depend>
