@@ -2,6 +2,11 @@
 Changelog for package pointgrey_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.0 (2018-10-15)
+-------------------
+* Build with the Spinnaker SDK as well.
+* Contributors: Mirai Hattori
+
 0.13.4 (2017-10-26)
 -------------------
 * Build jessie binaries with the legacy SDK as well.

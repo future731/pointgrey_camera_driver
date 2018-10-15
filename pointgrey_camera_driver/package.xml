@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>pointgrey_camera_driver</name>
-  <version>0.13.4</version>
+  <version>1.0.0</version>
   <description>Point Grey camera driver based on libflycapture2.</description>
 
   <maintainer email="mpurvis@clearpathrobotics.com">Mike Purvis</maintainer>
@@ -25,18 +25,10 @@
   <depend>camera_info_manager</depend>
   <depend>image_transport</depend>
   <depend>dynamic_reconfigure</depend>
-  <depend>opencv_apps</depend>
-  <depend>cv_bridge</depend>
 
   <!-- Dependencies of libflycapture and spinnaker-->
   <depend>libusb-1.0-dev</depend>
   <depend>libraw1394-dev</depend>
-
-  <!-- Dependencies of pointgrey arduino writer-->
-  <depend>gcc-avr</depend>
-  <depend>avr-libc</depend>
-  <depend>avrdude</depend>
-  <depend>binutils-avr</depend>
 
   <exec_depend>image_proc</exec_depend>
   <exec_depend>stereo_image_proc</exec_depend>

@@ -3,7 +3,7 @@ project(pointgrey_camera_driver)
 
 find_package(catkin REQUIRED COMPONENTS camera_info_manager diagnostic_updater dynamic_reconfigure
   image_exposure_msgs image_transport nodelet roscpp sensor_msgs
-  wfov_camera_msgs opencv_apps cv_bridge
+  wfov_camera_msgs
   )
 
 generate_dynamic_reconfigure_options(
@@ -11,7 +11,7 @@ generate_dynamic_reconfigure_options(
 )
 
 catkin_package(CATKIN_DEPENDS
-  image_exposure_msgs nodelet roscpp sensor_msgs wfov_camera_msgs cv_bridge
+  image_exposure_msgs nodelet roscpp sensor_msgs wfov_camera_msgs
 )
 #{{{
 # If flycapture is already present, use the found version. If not, download it.
@@ -86,11 +86,6 @@ catkin_package(CATKIN_DEPENDS
 # find_package(PkgConfig REQUIRED)
 # pkg_check_modules(OpenCV opencv-3.3.1-dev REQUIRED)
 #}}}
-find_package(OpenCV REQUIRED)
-message("OpenCV VERSION: ${OpenCV_VERSION}")
-message("OpenCV Components: ${OpenCV_LIB_COMPONENTS}")
-find_package(Eigen3 REQUIRED)
-
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(Spinnaker REQUIRED)
@@ -103,10 +98,6 @@ add_library(PointGreyCameraSPNodelet src/nodelet_sp.cpp)
 target_link_libraries(PointGreyCameraSPNodelet PointGreyCameraSP ${catkin_LIBRARIES})
 add_library(PointGreyStereoCameraSPNodelet src/stereo_nodelet_sp.cpp)
 target_link_libraries(PointGreyStereoCameraSPNodelet PointGreyCameraSP ${catkin_LIBRARIES})
-add_library(PointGreySyncStereoImagesNodelet src/message_filter_stereo.cpp)
-target_link_libraries(PointGreySyncStereoImagesNodelet ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
-add_library(PointGreyBallOrbitEstimationNodelet src/ekf_orbit_estimation.cpp)
-target_link_libraries(PointGreyBallOrbitEstimationNodelet ${catkin_LIBRARIES})
 
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
@@ -120,8 +111,6 @@ install(TARGETS
   PointGreyCameraSP
   PointGreyCameraSPNodelet
   PointGreyStereoCameraSPNodelet
-  PointGreySyncStereoImagesNodelet
-  PointGreyBallOrbitEstimationNodelet
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

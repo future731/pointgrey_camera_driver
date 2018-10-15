@@ -21,15 +21,3 @@
     <description>This is the nodelet for the Point Grey Stereo Camera Driver.</description>
   </class>
 </library>
-
-<library path="lib/libPointGreySyncStereoImagesNodelet">
-  <class name="pointgrey_camera_driver/PointGreySyncStereoImagesNodelet" type="pointgrey_camera_driver::PointGreySyncStereoImagesNodelet" base_class_type="nodelet::Nodelet">
-    <description>This is the nodelet for the Point Grey Stereo Camera images synchronization.</description>
-  </class>
-</library>
-
-<library path="lib/libPointGreyBallOrbitEstimationNodelet">
-  <class name="pointgrey_camera_driver/PointGreyBallOrbitEstimationNodelet" type="pointgrey_camera_driver::PointGreyBallOrbitEstimationNodelet" base_class_type="nodelet::Nodelet">
-    <description>This is the nodelet for the Point Grey Stereo Camera to estimate the ball orbit.</description>
-  </class>
-</library>
