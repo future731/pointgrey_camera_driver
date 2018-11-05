@@ -98,6 +98,11 @@ add_library(PointGreyCameraSPNodelet src/nodelet_sp.cpp)
 target_link_libraries(PointGreyCameraSPNodelet PointGreyCameraSP ${catkin_LIBRARIES})
 add_library(PointGreyStereoCameraSPNodelet src/stereo_nodelet_sp.cpp)
 target_link_libraries(PointGreyStereoCameraSPNodelet PointGreyCameraSP ${catkin_LIBRARIES})
+add_executable(pointgrey_device_reset src/device_reset.cpp)
+target_link_libraries(pointgrey_device_reset PointGreyCameraSP ${catkin_LIBRARIES})
+set_target_properties(pointgrey_device_reset
+                      PROPERTIES OUTPUT_NAME device_reset PREFIX "")
+add_dependencies(pointgrey_device_reset ${catkin_EXPORTED_TARGETS})
 
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
