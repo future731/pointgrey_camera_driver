@@ -367,8 +367,8 @@ private:
     it_.reset(new image_transport::ImageTransport(lnh));
     rit_.reset(new image_transport::ImageTransport(rnh));
     image_transport::SubscriberStatusCallback cb = boost::bind(&PointGreyStereoCameraSPNodelet::connectCb, this);
-    it_pub_ = it_->advertiseCamera("image_raw", /* queue_size = */ 5, cb, cb);
-    rit_pub_ = rit_->advertiseCamera("image_raw", 5, cb, cb);
+    it_pub_ = it_->advertiseCamera("image_raw", /* queue_size = */ 1, cb, cb);
+    rit_pub_ = rit_->advertiseCamera("image_raw", 1, cb, cb);
 
     // Set up diagnostics
     updater_.setHardwareID("pointgrey_camera " + cinfo_name.str());
